@@ -14,10 +14,22 @@ select(line,station_name,station_latitude,station_longitude,route1:route11,entry
 mutate(entry = recode(entry, "YES" = TRUE,"NO" = FALSE ))
 ##the dataset now contains variables retain line, station name, station latitude,station longitude, routes served, entry, vending, entrance type, and ADA compliance. (not finish)
 
-gather(key = route_number, value = route_name, route1_route_name:route11_route_name)
+library(dplyr)
+distinct_station = distinct(NYCTransit_data,station_name,route1,.keep_all = TRUE) 
+##there are 450 distinct stations
 
+filter(distinct_station, ada == TRUE)
+##there are 128 stations that are ada compliant 
 
-knitr::opts_chunk$set(echo = TRUE)
+vending_not_allow_entrance = filter(distinct_station, vending == "NO")
+nrow(vending_not_allow_entrance)/nrow(distinct_station)
+##The proportion is 0.02
 
+tidy_transit_data = gather(distinct_station,key = route_number, value = route_name, route1:route11) 
+distinct_serve_A = filter(tidy_transit_data, route_name == "A")
+##there are 56 distinct stations serve A train. 
+
+ADA_compliant = filter(distinct_serve_A, ada == TRUE) 
+##there are 15 ADA compliant
 ```
 
