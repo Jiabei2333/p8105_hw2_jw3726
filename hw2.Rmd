@@ -1,0 +1,23 @@
+---
+title: "p8105_hw2_jw3726"
+author: "Jiabei Wang"
+date: "2018年9月29日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readxl)
+NYCTransit_data = read_csv(file = "./NYC_Transit_Subway_Entrance_And_Exit_Data (1).csv")  %>%
+janitor::clean_names() %>%
+select(line,station_name,station_latitude,station_longitude,route1:route11,entry,vending,entrance_type,ada,ada_notes) %>%
+mutate(entry = recode(entry, "YES" = TRUE,"NO" = FALSE ))
+##the dataset now contains variables retain line, station name, station latitude,station longitude, routes served, entry, vending, entrance type, and ADA compliance. (not finish)
+
+gather(key = route_number, value = route_name, route1_route_name:route11_route_name)
+
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
