@@ -39,8 +39,20 @@ library(readxl)
 Trash_Wheel_data = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx", range = "A2:N258") %>%
   janitor::clean_names() %>%
 filter (!is.na(dumpster) ) 
-round(Trash_Wheel_data$sports_balls,digits = 0)
+round(Trash_Wheel_data$sports_balls,digits = 0) %>%
+as.integer(Trash_Wheel_data$sports_balls) 
+##图里没变
+  
+```
 
+```{r}
+precipitation_2017 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 3 ) %>%
+janitor::clean_names() 
+  filter(!is.na(month))
+
+precipitation_2016 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 4 ) %>%
+janitor::clean_names() 
+  
 ```
 
 
