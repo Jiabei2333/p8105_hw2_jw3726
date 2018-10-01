@@ -160,11 +160,11 @@ mutate(entry = recode(entry, &quot;YES&quot; = TRUE,&quot;NO&quot; = FALSE ))</c
 <pre class="r"><code>##the dataset now contains variables retain line, station name, station latitude,station longitude, routes served, entry, vending, entrance type, and ADA compliance. (not finish)
 
 library(dplyr)
-distinct_station = distinct(NYCTransit_data,station_name,route1,.keep_all = TRUE) 
+distinct_station = distinct(NYCTransit_data,station_name,route1,line,.keep_all = TRUE) 
 ##there are 450 distinct stations
 
 filter(distinct_station, ada == TRUE)</code></pre>
-<pre><code>## # A tibble: 75 x 20
+<pre><code>## # A tibble: 84 x 20
 ##    line  station_name station_latitude station_longitu~ route1 route2
 ##    &lt;chr&gt; &lt;chr&gt;                   &lt;dbl&gt;            &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt; 
 ##  1 4 Av~ Atlantic Av~             40.7            -74.0 B      Q     
@@ -177,23 +177,56 @@ filter(distinct_station, ada == TRUE)</code></pre>
 ##  8 63rd~ 21st St                  40.8            -73.9 F      &lt;NA&gt;  
 ##  9 63rd~ Lexington Av             40.8            -74.0 F      &lt;NA&gt;  
 ## 10 63rd~ Roosevelt I~             40.8            -74.0 F      &lt;NA&gt;  
-## # ... with 65 more rows, and 14 more variables: route3 &lt;chr&gt;,
+## # ... with 74 more rows, and 14 more variables: route3 &lt;chr&gt;,
 ## #   route4 &lt;chr&gt;, route5 &lt;chr&gt;, route6 &lt;chr&gt;, route7 &lt;chr&gt;, route8 &lt;int&gt;,
 ## #   route9 &lt;int&gt;, route10 &lt;int&gt;, route11 &lt;int&gt;, entry &lt;lgl&gt;,
 ## #   vending &lt;chr&gt;, entrance_type &lt;chr&gt;, ada &lt;lgl&gt;, ada_notes &lt;chr&gt;</code></pre>
-<pre class="r"><code>##there are 128 stations that are ada compliant 
+<pre class="r"><code>##there are 84 stations that are ada compliant 
 
-vending_not_allow_entrance = filter(distinct_station, vending == &quot;NO&quot;)
-nrow(vending_not_allow_entrance)/nrow(distinct_station)</code></pre>
-<pre><code>## [1] 0.02</code></pre>
-<pre class="r"><code>##The proportion is 0.02
+without_vending = filter(distinct_station, vending == &quot;NO&quot;)
+without_vending_allow_entrance = filter(without_vending,entry == TRUE )
+nrow(without_vending_allow_entrance)/nrow(without_vending)</code></pre>
+<pre><code>## [1] 0.5555556</code></pre>
+<pre class="r"><code>##The proportion is 0.55
 
 tidy_transit_data = gather(distinct_station,key = route_number, value = route_name, route1:route11) 
 distinct_serve_A = filter(tidy_transit_data, route_name == &quot;A&quot;)
-##there are 56 distinct stations serve A train. 
+##there are 60 distinct stations serve A train. 
 
 ADA_compliant = filter(distinct_serve_A, ada == TRUE) 
-##there are 15 ADA compliant</code></pre>
+##there are 17 ADA compliant</code></pre>
+<pre class="r"><code>library(readxl)
+Trash_Wheel_data = readxl::read_excel(&quot;./HealthyHarborWaterWheelTotals2017-9-26.xlsx&quot;, range = &quot;A2:N258&quot;) %&gt;%
+  janitor::clean_names() %&gt;%
+filter (!is.na(dumpster) ) 
+round(Trash_Wheel_data$sports_balls,digits = 0) %&gt;%
+as.integer(Trash_Wheel_data$sports_balls) </code></pre>
+<pre><code>##   [1]  7  5  6  6  7  5  3  6  6  7  6  8  6  6  6  6  5  6  6  7  6  6  6
+##  [24]  5  6  7  8  7  4  7  3  6  6  6  7  6  6  6  7  6  6  7  6  6  7  6
+##  [47]  5  3  8 16 14 13 16  8  5  8 11  7  6  8 22 28 19 32 24 26 36 24  9
+##  [70] 16 22 17 13 14 21 15 13 18 16 22 32 18 21 34 19 14 22 16 25 27 18 20
+##  [93] 17 56 32 22  6  3 17 13 12  7  8 16 23 33 27 15 21  9 13 22 17 27  8
+## [116] 17 14 21 26  6  4 16 24 23 18 46 38 24 36 42 23 34 38 26 32 43 38 24
+## [139] 35 26 29 31 28 34 26 38 25 16 24 15 31 22 28 32 15 28 33 11 37 22 11
+## [162] 34  6 24 20 15 22 19 12 14 18 10  6  8  8  5  3  5  7  2  7  3  4  5
+## [185]  8 10  5  7  5  8 10 11 14 12  8  5  9  5 14 12  8  7 18 11 22 13 21
+## [208] 14  9  6 13 11  6  8  5</code></pre>
+<pre class="r"><code>##图里没变</code></pre>
+<pre class="r"><code>precipitation_2017 = readxl::read_excel(&quot;./HealthyHarborWaterWheelTotals2017-9-26.xlsx&quot;,sheet = 3, range = &quot;A2:B15&quot;) %&gt;%
+janitor::clean_names() %&gt;%
+  filter(!is.na(total)) %&gt;%
+mutate(year = &quot;2017&quot;)
+
+precipitation_2016 = readxl::read_excel(&quot;./HealthyHarborWaterWheelTotals2017-9-26.xlsx&quot;,sheet = 4, range = &quot;A2:B15&quot; ) %&gt;%
+janitor::clean_names() %&gt;%
+   filter(!is.na(total))  %&gt;%
+mutate(year = &quot;2016&quot;)
+
+bind_2016_2017 = bind_rows(precipitation_2017, precipitation_2016 ) 
+as.character(bind_2016_2017$month)</code></pre>
+<pre><code>##  [1] &quot;1&quot;  &quot;2&quot;  &quot;3&quot;  &quot;4&quot;  &quot;5&quot;  &quot;6&quot;  &quot;7&quot;  &quot;8&quot;  NA   &quot;1&quot;  &quot;2&quot;  &quot;3&quot;  &quot;4&quot;  &quot;5&quot; 
+## [15] &quot;6&quot;  &quot;7&quot;  &quot;8&quot;  &quot;9&quot;  &quot;10&quot; &quot;11&quot; &quot;12&quot; NA</code></pre>
+<p>the number of observations in dataset precipitation_2017 is 9 , and there are 13observations in dataset precipitation_2016. The total precipitation in 2017 is 59.86. The median number of sports ball is 13</p>
 
 
 

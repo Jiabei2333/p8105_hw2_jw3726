@@ -15,23 +15,23 @@ mutate(entry = recode(entry, "YES" = TRUE,"NO" = FALSE ))
 ##the dataset now contains variables retain line, station name, station latitude,station longitude, routes served, entry, vending, entrance type, and ADA compliance. (not finish)
 
 library(dplyr)
-distinct_station = distinct(NYCTransit_data,station_name,route1,.keep_all = TRUE) 
+distinct_station = distinct(NYCTransit_data,station_name,route1,line,.keep_all = TRUE) 
 ##there are 450 distinct stations
 
 filter(distinct_station, ada == TRUE)
-##there are 128 stations that are ada compliant 
+##there are 84 stations that are ada compliant 
 
 without_vending = filter(distinct_station, vending == "NO")
 without_vending_allow_entrance = filter(without_vending,entry == TRUE )
-nrow(without_vending_allow_entrance)/450
-##The proportion is 0.111????
+nrow(without_vending_allow_entrance)/nrow(without_vending)
+##The proportion is 0.55
 
 tidy_transit_data = gather(distinct_station,key = route_number, value = route_name, route1:route11) 
 distinct_serve_A = filter(tidy_transit_data, route_name == "A")
-##there are 56 distinct stations serve A train. 
+##there are 60 distinct stations serve A train. 
 
 ADA_compliant = filter(distinct_serve_A, ada == TRUE) 
-##there are 15 ADA compliant
+##there are 17 ADA compliant
 ```
 
 ```{r}
@@ -46,13 +46,22 @@ as.integer(Trash_Wheel_data$sports_balls)
 ```
 
 ```{r}
-precipitation_2017 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 3 ) %>%
-janitor::clean_names() 
-  filter(!is.na(month))
+precipitation_2017 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 3, range = "A2:B15") %>%
+janitor::clean_names() %>%
+  filter(!is.na(total)) %>%
+mutate(year = "2017")
 
-precipitation_2016 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 4 ) %>%
-janitor::clean_names() 
-  
+precipitation_2016 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 4, range = "A2:B15" ) %>%
+janitor::clean_names() %>%
+   filter(!is.na(total))  %>%
+mutate(year = "2016")
+
+bind_2016_2017 = bind_rows(precipitation_2017, precipitation_2016 ) 
+as.character(bind_2016_2017$month)
+
 ```
 
+
+the number of observations in dataset precipitation_2017 is `r nrow(precipitation_2017)` , and there are `r nrow(precipitation_2016)`observations in dataset precipitation_2016. The total precipitation in 2017 is `r sum(precipitation_2017$total)`.
+The median number of sports ball is `r median(Trash_Wheel_data$sports_balls)`
 
