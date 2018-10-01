@@ -5,7 +5,7 @@ date: "2018年9月29日"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 library(tidyverse)
 library(readxl)
 NYCTransit_data = read_csv(file = "./NYC_Transit_Subway_Entrance_And_Exit_Data (1).csv")  %>%
@@ -21,9 +21,10 @@ distinct_station = distinct(NYCTransit_data,station_name,route1,.keep_all = TRUE
 filter(distinct_station, ada == TRUE)
 ##there are 128 stations that are ada compliant 
 
-vending_not_allow_entrance = filter(distinct_station, vending == "NO")
-nrow(vending_not_allow_entrance)/nrow(distinct_station)
-##The proportion is 0.02
+without_vending = filter(distinct_station, vending == "NO")
+without_vending_allow_entrance = filter(without_vending,entry == TRUE )
+nrow(without_vending_allow_entrance)/450
+##The proportion is 0.111????
 
 tidy_transit_data = gather(distinct_station,key = route_number, value = route_name, route1:route11) 
 distinct_serve_A = filter(tidy_transit_data, route_name == "A")
@@ -32,4 +33,14 @@ distinct_serve_A = filter(tidy_transit_data, route_name == "A")
 ADA_compliant = filter(distinct_serve_A, ada == TRUE) 
 ##there are 15 ADA compliant
 ```
+
+```{r}
+library(readxl)
+Trash_Wheel_data = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx", range = "A2:N258") %>%
+  janitor::clean_names() %>%
+filter (!is.na(dumpster) ) 
+round(Trash_Wheel_data$sports_balls,digits = 0)
+
+```
+
 
