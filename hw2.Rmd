@@ -1,10 +1,10 @@
 ---
 title: "p8105_hw2_jw3726"
 author: "Jiabei Wang"
-date: "2018年9月29日"
+date: "October 4th 2018"
 output: html_document
 ---
-
+##problem 1
 ```{r setup}
 library(tidyverse)
 library(readxl)
@@ -15,16 +15,16 @@ mutate(entry = recode(entry, "YES" = TRUE,"NO" = FALSE ))
 ##the dataset now contains variables retain line, station name, station latitude,station longitude, routes served, entry, vending, entrance type, and ADA compliance. (not finish)
 
 library(dplyr)
-distinct_station = distinct(NYCTransit_data,station_name,route1,line,.keep_all = TRUE) 
+distinct_station = distinct(NYCTransit_data,station_name,line,.keep_all = TRUE) 
 ##there are 450 distinct stations
 
 filter(distinct_station, ada == TRUE)
 ##there are 84 stations that are ada compliant 
 
-without_vending = filter(distinct_station, vending == "NO")
+without_vending = filter(NYCTransit_data, vending == "NO")
 without_vending_allow_entrance = filter(without_vending,entry == TRUE )
 nrow(without_vending_allow_entrance)/nrow(without_vending)
-##The proportion is 0.55
+##The proportion is 0.377
 
 tidy_transit_data = gather(distinct_station,key = route_number, value = route_name, route1:route11) 
 distinct_serve_A = filter(tidy_transit_data, route_name == "A")
@@ -33,35 +33,84 @@ distinct_serve_A = filter(tidy_transit_data, route_name == "A")
 ADA_compliant = filter(distinct_serve_A, ada == TRUE) 
 ##there are 17 ADA compliant
 ```
+There are 1868 observations. There are `r nrow(distinct(NYCTransit_data,station_name,line,.keep_all = TRUE)) `distinct stations. There are `r nrow(filter(distinct_station, ada == TRUE))`that are ada compliant. The proportion of station entrances / exits without vending allow entrance is 0.377. There are 60 distinct stations serve A train. There are 17 ADA compliant
 
+##problem2
 ```{r}
 library(readxl)
-Trash_Wheel_data = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx", range = "A2:N258") %>%
+Trash_Wheel_data = readxl::read_excel("HealthyHarborWaterWheelTotals.xlsx",range = 'A2:N338') %>%
   janitor::clean_names() %>%
-filter (!is.na(dumpster) ) 
-round(Trash_Wheel_data$sports_balls,digits = 0) %>%
-as.integer(Trash_Wheel_data$sports_balls) 
-##图里没变
+filter (!is.na(dumpster) ) %>% ##omit colums containing notes (how to specify?)
+##round sports_balls to integer and convert it to integer variable
+ mutate(sports_balls = round(sports_balls,digits = 0) ) 
+integer_trash_wheel = as.integer(Trash_Wheel_data$sports_balls) 
+
   
 ```
 
 ```{r}
-precipitation_2017 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 3, range = "A2:B15") %>%
+precipitation_2017 = readxl::read_excel("./HealthyHarborWaterWheelTotals.xlsx",sheet = 4, range = "A2:B15") %>%
 janitor::clean_names() %>%
+  ##omit rows without precipitation data
   filter(!is.na(total)) %>%
+  ##add a variable name
 mutate(year = "2017")
 
-precipitation_2016 = readxl::read_excel("./HealthyHarborWaterWheelTotals2017-9-26.xlsx",sheet = 4, range = "A2:B15" ) %>%
+precipitation_2016 = readxl::read_excel("./HealthyHarborWaterWheelTotals.xlsx",sheet = 5, range = "A2:B15" ) %>%
 janitor::clean_names() %>%
+  ##omit rows without precipitation data
    filter(!is.na(total))  %>%
+  ##add a variable name
 mutate(year = "2016")
-
+##combine datasets
 bind_2016_2017 = bind_rows(precipitation_2017, precipitation_2016 ) 
-as.character(bind_2016_2017$month)
+##convert month to a character variable
+mutate(bind_2016_2017, month.name[month]) 
 
 ```
 
+the number of observations in dataset precipitation_2017 is `r dim(precipitation_2017)` , and there are `r dim(precipitation_2016)`observations in dataset precipitation_2016 precipitation_2016. The total precipitation in 2017 is `r sum(precipitation_2017$total)/2`.
+The median number of sports ball is `r median( filter(Trash_Wheel_data, year == 2016)$sports_balls)`. 
+The key variables are dumpster, weight_tons, and volume_cubic_yards. 
 
-the number of observations in dataset precipitation_2017 is `r nrow(precipitation_2017)` , and there are `r nrow(precipitation_2016)`observations in dataset precipitation_2016. The total precipitation in 2017 is `r sum(precipitation_2017$total)`.
-The median number of sports ball is `r median(Trash_Wheel_data$sports_balls)`
+##problem3
+```{r}
+library(p8105.datasets)
+data(brfss_smart2010) 
+## appropriate variable name
+brfss_smart2010 = janitor::clean_names(brfss_smart2010)
+##focus on "Overall Health topic"
+Overall_Health_data = filter(brfss_smart2010,topic == "Overall Health")
+##exclude some variables
+Overall_Health_data = select(Overall_Health_data, year, locationabbr, locationdesc, response, data_value)
+##structure data
+Overall_Health_data = spread(Overall_Health_data, key = response, value = data_value)
+Overall_Health_data = janitor::clean_names(Overall_Health_data) %>% 
+##create a new variable
+
+mutate(proportion = (excellent + very_good)) 
+  
+##how many unique stations
+distinct_station = distinct(Overall_Health_data, locationabbr,.keep_all = TRUE)
+distinct_station = distinct(Overall_Health_data, locationdesc,.keep_all = TRUE)
+tail(names(sort(table(brfss_smart2010$locationabbr))),1)
+year_2002 = filter(Overall_Health_data, year == 2002)
+##median
+median(Overall_Health_data$excellent, na.rm = TRUE)
+##histogram
+ggplot(year_2002, aes(x = excellent)) + 
+  geom_histogram()
+location_NY = filter(Overall_Health_data, locationdesc =="NY - New York County"|locationdesc == "NY - Queens County" )
+ggplot(location_NY, aes(x = year, y = excellent)) + 
+  geom_point(aes(color = locationdesc))
+
+```
+the number of unique station is `r nrow(distinct_station)`
+Yes, every state is represented, since there are 51 states in the US.There are 404 locations. NJ is observed the most.
+The median of the "Excellent" is `r median(year_2002$excellent, na.rm = TRUE)`
+the most frequent state is `r tail(names(sort(table(brfss_smart2010$locationabbr))),1)`
+From the histogram, the excellent centered between 20 and 30, and there is outlier is centered around 40.
+From the scatterplot, NY_Quennes County lie between 15 to 20, and New York country mainly lie between 25 to 30. 
+  
+
 
