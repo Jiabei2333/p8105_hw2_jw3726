@@ -2,7 +2,7 @@
 title: "p8105_hw2_jw3726"
 author: "Jiabei Wang"
 date: "October 4th 2018"
-output: html_document
+output: github_document
 ---
 ##problem 1
 ```{r setup}
